@@ -3,9 +3,13 @@
 import { generateConformityPDF } from '../config/pdf-generator.js';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const PROJECT_ROOT = path.join(__dirname, '..');
 
 function findLatestTestFile() {
-  const jsonDir = 'results/json';
+  const jsonDir = path.join(PROJECT_ROOT, 'results', 'json');
   if (!fs.existsSync(jsonDir)) {
     console.error('No se encuentra el directorio results/json');
     return null;

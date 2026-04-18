@@ -1,6 +1,10 @@
 import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const PROJECT_ROOT = path.join(__dirname, '..');
 
 function evaluateConformity(data) {
   const metrics = data.metrics;
@@ -201,10 +205,10 @@ export async function generateConformityPDF(data, testName, testConfig) {
     const page = await browser.newPage();
     await page.setContent(html);
 
-    const pdfDir = 'results/pdf';
+    const pdfDir = path.join(PROJECT_ROOT, 'results', 'pdf');
     if (!fs.existsSync(pdfDir)) fs.mkdirSync(pdfDir, { recursive: true });
 
-    const pdfPath = `${pdfDir}/${testName}_${timestamp}.pdf`;
+    const pdfPath = path.join(pdfDir, `${testName}_${timestamp}.pdf`);
     await page.pdf({ path: pdfPath, format: 'A4', printBackground: true, margin: { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' } });
     await browser.close();
 
