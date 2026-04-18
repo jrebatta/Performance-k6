@@ -21,6 +21,9 @@ function findLatestTestFile() {
 
 async function main() {
   try {
+    console.log('Esperando 5 segundos para que los archivos se escriban...');
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
     console.log('Buscando archivo de resultados más reciente...');
     const latest = findLatestTestFile();
 
