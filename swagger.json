@@ -1,0 +1,1404 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "description": "**ServeRest is a free REST API that simulates a virtual store to serve as study material for API testing.**\n\n**Don't forget to follow the [project author](https://github.com/PauloGoncalvesBH) and star the repository: [github.com/ServeRest/ServeRest](https://github.com/ServeRest/ServeRest)**\n\nThis page documents all routes and how to access them. For more details about ServeRest (how to run locally using Docker or NPM, change authentication timeout, etc), see [the ServeRest repository](https://github.com/serverest/serverest).\n\nUsing Postman? Import the [Swagger JSON](https://raw.githubusercontent.com/ServeRest/ServeRest/trunk/docs/swagger.json) to access the collections.\n\nDoing load testing? Read the '[Load Testing](https://github.com/ServeRest/ServeRest#teste-de-carga)' section.\n\n\nThank you ♥ to everyone who supports the project [financially](https://opencollective.com/serverest#section-contributors) or [with code, ideas, and promotion](https://github.com/ServeRest/ServeRest#contribuidores-); thanks to you **more than R$ 2000,00 were donated to the NGO [Todas as letras](https://todasasletras.org/)** so far.\n\nServeRest has a front-end in beta; check it out: [front.serverest.dev](https://front.serverest.dev).\n\nNeed help? [Open an issue](https://github.com/ServeRest/ServeRest/issues) or contact the project maintainer:\n",
+        "version": "3.2.0",
+        "title": "ServeRest",
+        "contact": {
+            "name": "Paulo Gonçalves",
+            "url": "https://www.linkedin.com/in/paulo-goncalves/"
+        }
+    },
+    "servers": [
+        {
+            "url": "https://serverest.dev"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Login",
+            "description": "Authenticate your user to create a cart and, if you are an admin, manage products"
+        },
+        {
+            "name": "Usuários",
+            "description": "Manage users, check login data, and create admin users"
+        },
+        {
+            "name": "Produtos",
+            "description": "Browse registered products or, as an admin, manage store products"
+        },
+        {
+            "name": "Carrinhos",
+            "description": "Browse registered carts, create one for your user, and, in the end, give up the purchase because you were just looking around"
+        }
+    ],
+    "paths": {
+        "/login": {
+            "post": {
+                "tags": [
+                    "Login"
+                ],
+                "summary": "Log in",
+                "description": "The token returned in authorization lasts 600 seconds (10 minutes). If it is expired you will receive status code 401 (Unauthorized).\n",
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/requestBodyLogin"
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/loginComSucesso"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid email and/or password",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/errorEmailSenhaInvalidos"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/usuarios": {
+            "get": {
+                "tags": [
+                    "Usuários"
+                ],
+                "summary": "List registered users",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/_id"
+                    },
+                    {
+                        "$ref": "#/components/parameters/nome"
+                    },
+                    {
+                        "$ref": "#/components/parameters/email"
+                    },
+                    {
+                        "$ref": "#/components/parameters/password"
+                    },
+                    {
+                        "$ref": "#/components/parameters/administrador"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User list",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/getUsuarios"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Usuários"
+                ],
+                "summary": "Create user",
+                "description": "It is not allowed to register a user with an email already in use",
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/requestBodyUsuarios"
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/cadastroComSucesso"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/EmailJaUtilizado"
+                    }
+                }
+            }
+        },
+        "/usuarios/{_id}": {
+            "get": {
+                "tags": [
+                    "Usuários"
+                ],
+                "summary": "Get user by ID",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "_id",
+                        "required": true,
+                        "description": "User ID",
+                        "schema": {
+                            "type": "string",
+                            "default": "0uxuPY0cbmQhpEz1"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/getUsuariosId"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuário não encontrado"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Usuários"
+                ],
+                "summary": "Delete user",
+                "description": "It is not allowed to delete a user with a cart.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "_id",
+                        "required": true,
+                        "description": "User ID",
+                        "schema": {
+                            "type": "string",
+                            "default": "0uxuPY0cbmQhpEz1"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Record deleted successfully | No record deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Registro excluído com sucesso | Nenhum registro excluído"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "User with registered cart",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/naoPermitidoExcluirUsuarioComCarrinho"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Usuários"
+                ],
+                "summary": "Update user",
+                "description": "It is not allowed to register a user with an email already in use.\nIf no user is found with the given ID, a new record is created instead of an update.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "_id",
+                        "required": true,
+                        "description": "User ID",
+                        "schema": {
+                            "type": "string",
+                            "default": "0uxuPY0cbmQhpEz1"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/requestBodyUsuarios"
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/alteradoComSucesso"
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "Created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/cadastroComSucesso"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/EmailJaUtilizado"
+                    }
+                }
+            }
+        },
+        "/produtos": {
+            "get": {
+                "tags": [
+                    "Produtos"
+                ],
+                "summary": "List registered products",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/_id"
+                    },
+                    {
+                        "$ref": "#/components/parameters/nome"
+                    },
+                    {
+                        "$ref": "#/components/parameters/preco"
+                    },
+                    {
+                        "$ref": "#/components/parameters/descricao"
+                    },
+                    {
+                        "$ref": "#/components/parameters/quantidade"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product list",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/getProdutos"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Produtos"
+                ],
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "Create product",
+                "description": "It is not allowed to register a product with a name already in use",
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/requestBodyProduto"
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/cadastroComSucesso"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ProdutoNomeDuplicado"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/TokenInvalido"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/RotaParaAdministradores"
+                    }
+                }
+            }
+        },
+        "/produtos/{_id}": {
+            "get": {
+                "tags": [
+                    "Produtos"
+                ],
+                "summary": "Get product by ID",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "_id",
+                        "required": true,
+                        "description": "Product ID",
+                        "schema": {
+                            "type": "string",
+                            "default": "BeeJh5lz3k6kSIzA"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/getProdutosId"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Product not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Produto não encontrado"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Produtos"
+                ],
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "Delete product",
+                "description": "It is not allowed to delete a product that is part of a cart.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "_id",
+                        "required": true,
+                        "description": "Product ID",
+                        "schema": {
+                            "type": "string",
+                            "default": "K6leHdftCeOJj8BJ"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Record deleted successfully | No record deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Registro excluído com sucesso | Nenhum registro excluído"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Product is part of a cart",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/naoPermitidoExcluirProdutoDeCarrinho"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/TokenInvalido"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/RotaParaAdministradores"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Produtos"
+                ],
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "Update product",
+                "description": "It is not allowed to register a product with a name already in use.\nIf no product is found with the given ID, a new record is created instead of an update.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "_id",
+                        "required": true,
+                        "description": "Product ID",
+                        "schema": {
+                            "type": "string",
+                            "default": "K6leHdftCeOJj8BJ"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/requestBodyProduto"
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/alteradoComSucesso"
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "Created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/cadastroComSucesso"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ProdutoNomeDuplicado"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/TokenInvalido"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/RotaParaAdministradores"
+                    }
+                }
+            }
+        },
+        "/carrinhos": {
+            "get": {
+                "tags": [
+                    "Carrinhos"
+                ],
+                "summary": "List registered carts",
+                "description": "Returned carts are unique per user",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/_id"
+                    },
+                    {
+                        "$ref": "#/components/parameters/precoTotal"
+                    },
+                    {
+                        "$ref": "#/components/parameters/quantidadeTotal"
+                    },
+                    {
+                        "$ref": "#/components/parameters/idUsuario"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cart list",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/getCarrinhos"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Carrinhos"
+                ],
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "Create cart",
+                "description": "The cart is linked to the user from the token sent in the `Authorization` header, and only 1 cart per user is allowed.\nWhen a cart is created successfully, the quantity of each product in the cart is reduced from the stock.\n",
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/requestBodyCarrinho"
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/cadastroComSucesso"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Não é permitido possuir produto duplicado | Não é permitido ter mais de 1 carrinho | Produto não encontrado | Produto não possui quantidade suficiente"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/TokenInvalido"
+                    }
+                }
+            }
+        },
+        "/carrinhos/{_id}": {
+            "get": {
+                "tags": [
+                    "Carrinhos"
+                ],
+                "summary": "Get cart by ID",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "_id",
+                        "required": true,
+                        "description": "Cart ID",
+                        "schema": {
+                            "type": "string",
+                            "default": "qbMqntef4iTOwWfg"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cart found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/getCarrinhosId"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Cart not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Carrinho não encontrado"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/carrinhos/concluir-compra": {
+            "delete": {
+                "tags": [
+                    "Carrinhos"
+                ],
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "Delete cart",
+                "description": "When a purchase is completed, the cart is deleted.\nThe deleted cart will be the one linked to the user from the `token` used.\n",
+                "responses": {
+                    "200": {
+                        "description": "Record deleted successfully | No cart was found for this user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Registro excluído com sucesso | Não foi encontrado carrinho para esse usuário"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/TokenInvalido"
+                    }
+                }
+            }
+        },
+        "/carrinhos/cancelar-compra": {
+            "delete": {
+                "tags": [
+                    "Carrinhos"
+                ],
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "Delete cart and return products to stock",
+                "description": "When a purchase is canceled, the cart is deleted and the stock of the products in that cart is replenished.\nThe deleted cart will be the one linked to the user from the `token` used.\n",
+                "responses": {
+                    "200": {
+                        "description": "Record deleted successfully | No cart was found for this user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Registro excluído com sucesso | Não foi encontrado carrinho para esse usuário"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/TokenInvalido"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "parameters": {
+            "_id": {
+                "in": "query",
+                "name": "_id",
+                "required": false,
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "nome": {
+                "in": "query",
+                "name": "nome",
+                "required": false,
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "email": {
+                "in": "query",
+                "name": "email",
+                "required": false,
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "password": {
+                "in": "query",
+                "name": "password",
+                "required": false,
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "administrador": {
+                "in": "query",
+                "name": "administrador",
+                "required": false,
+                "schema": {
+                    "type": "string",
+                    "enum": [
+                        "true",
+                        "false"
+                    ]
+                }
+            },
+            "preco": {
+                "in": "query",
+                "name": "preco",
+                "required": false,
+                "description": "Filter by price. Provide an integer greater than or equal to 1.",
+                "example": 470,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1
+                }
+            },
+            "descricao": {
+                "in": "query",
+                "name": "descricao",
+                "required": false,
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "quantidade": {
+                "in": "query",
+                "name": "quantidade",
+                "required": false,
+                "description": "Filter by quantity. Provide an integer greater than or equal to 0.",
+                "example": 0,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            },
+            "precoTotal": {
+                "in": "query",
+                "name": "precoTotal",
+                "required": false,
+                "description": "Filter by total price. Provide an integer greater than or equal to 1.",
+                "example": 1300,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1
+                }
+            },
+            "quantidadeTotal": {
+                "in": "query",
+                "name": "quantidadeTotal",
+                "required": false,
+                "description": "Filter by total quantity. Provide an integer greater than or equal to 0.",
+                "example": 2,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            },
+            "idUsuario": {
+                "in": "query",
+                "name": "idUsuario",
+                "required": false,
+                "schema": {
+                    "type": "string"
+                }
+            }
+        },
+        "requestBodies": {
+            "requestBodyUsuarios": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/requestBodyUsuarios"
+                        },
+                        "example": {
+                            "nome": "Fulano da Silva",
+                            "email": "beltrano@qa.com.br",
+                            "password": "teste",
+                            "administrador": "true"
+                        }
+                    }
+                },
+                "required": true
+            },
+            "requestBodyProduto": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/requestBodyProduto"
+                        },
+                        "example": {
+                            "nome": "Logitech MX Vertical",
+                            "preco": 470,
+                            "descricao": "Mouse",
+                            "quantidade": 381
+                        }
+                    }
+                },
+                "required": true
+            },
+            "requestBodyLogin": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/requestBodyLogin"
+                        },
+                        "example": {
+                            "email": "fulano@qa.com",
+                            "password": "teste"
+                        }
+                    }
+                },
+                "required": true
+            },
+            "requestBodyCarrinho": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/requestBodyCarrinho"
+                        },
+                        "example": {
+                            "produtos": [
+                                {
+                                    "idProduto": "BeeJh5lz3k6kSIzA",
+                                    "quantidade": 1
+                                },
+                                {
+                                    "idProduto": "YaeJ455lz3k6kSIzA",
+                                    "quantidade": 3
+                                }
+                            ]
+                        }
+                    }
+                },
+                "required": true
+            }
+        },
+        "responses": {
+            "EmailJaUtilizado": {
+                "description": "Email already registered",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/errorEmailJaUtilizado"
+                        }
+                    }
+                }
+            },
+            "ProdutoNomeDuplicado": {
+                "description": "A product with this name already exists",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/existeProdutoComEsseNome"
+                        }
+                    }
+                }
+            },
+            "TokenInvalido": {
+                "description": "Token missing, invalid or expired",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/tokenAusenteInvalidoExpirado"
+                        }
+                    }
+                }
+            },
+            "RotaParaAdministradores": {
+                "description": "Route exclusive to administrators (`administrador = true`)",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/rotaParaAdministradores"
+                        }
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "ApiKeyAuth": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "Authorization",
+                "description": "Provide the `Authorization` value returned by the _/login_ route"
+            }
+        },
+        "schemas": {
+            "nomeUsuario": {
+                "type": "string",
+                "example": "Fulano da Silva"
+            },
+            "emailBeltrano": {
+                "type": "string",
+                "example": "beltrano@qa.com.br"
+            },
+            "emailFulano": {
+                "type": "string",
+                "example": "fulano@qa.com"
+            },
+            "password": {
+                "type": "string",
+                "example": "teste"
+            },
+            "administrador": {
+                "type": "string",
+                "enum": [
+                    "true",
+                    "false"
+                ],
+                "example": "true"
+            },
+            "_idUsuario": {
+                "type": "string",
+                "example": "0uxuPY0cbmQhpEz1"
+            },
+            "nomeProduto1": {
+                "type": "string",
+                "example": "Logitech MX Vertical"
+            },
+            "precoProduto1": {
+                "type": "integer",
+                "example": 470
+            },
+            "descricaoProduto1": {
+                "type": "string",
+                "example": "Mouse"
+            },
+            "quantidadeProduto1": {
+                "type": "integer",
+                "example": 381
+            },
+            "_idProduto1": {
+                "type": "string",
+                "example": "BeeJh5lz3k6kSIzA"
+            },
+            "arrayProduto": {
+                "type": "object",
+                "properties": {
+                    "nome": {
+                        "type": "string"
+                    },
+                    "preco": {
+                        "type": "integer"
+                    },
+                    "descricao": {
+                        "type": "string"
+                    },
+                    "quantidade": {
+                        "type": "integer"
+                    },
+                    "_id": {
+                        "type": "string"
+                    }
+                }
+            },
+            "requestBodyUsuarios": {
+                "type": "object",
+                "properties": {
+                    "nome": {
+                        "$ref": "#/components/schemas/nomeUsuario"
+                    },
+                    "email": {
+                        "$ref": "#/components/schemas/emailBeltrano"
+                    },
+                    "password": {
+                        "$ref": "#/components/schemas/password"
+                    },
+                    "administrador": {
+                        "$ref": "#/components/schemas/administrador"
+                    }
+                }
+            },
+            "requestBodyLogin": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "$ref": "#/components/schemas/emailFulano"
+                    },
+                    "password": {
+                        "$ref": "#/components/schemas/password"
+                    }
+                }
+            },
+            "requestBodyProduto": {
+                "type": "object",
+                "properties": {
+                    "nome": {
+                        "$ref": "#/components/schemas/nomeProduto1"
+                    },
+                    "preco": {
+                        "$ref": "#/components/schemas/precoProduto1"
+                    },
+                    "descricao": {
+                        "$ref": "#/components/schemas/descricaoProduto1"
+                    },
+                    "quantidade": {
+                        "$ref": "#/components/schemas/quantidadeProduto1"
+                    }
+                }
+            },
+            "requestBodyCarrinho": {
+                "type": "object",
+                "properties": {
+                    "produtos": {
+                        "type": "object",
+                        "properties": {
+                            "idProduto": {
+                                "type": "string"
+                            },
+                            "quantidade": {
+                                "type": "integer"
+                            }
+                        },
+                        "example": [
+                            {
+                                "idProduto": "BeeJh5lz3k6kSIzA",
+                                "quantidade": 1
+                            },
+                            {
+                                "idProduto": "YaeJ455lz3k6kSIzA",
+                                "quantidade": 3
+                            }
+                        ]
+                    }
+                }
+            },
+            "getUsuarios": {
+                "type": "object",
+                "properties": {
+                    "quantidade": {
+                        "type": "number",
+                        "example": 1
+                    },
+                    "usuarios": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "nome": {
+                                    "$ref": "#/components/schemas/nomeUsuario"
+                                },
+                                "email": {
+                                    "$ref": "#/components/schemas/emailBeltrano"
+                                },
+                                "password": {
+                                    "$ref": "#/components/schemas/password"
+                                },
+                                "administrador": {
+                                    "$ref": "#/components/schemas/administrador"
+                                },
+                                "_id": {
+                                    "$ref": "#/components/schemas/_idUsuario"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "getUsuariosId": {
+                "type": "object",
+                "properties": {
+                    "nome": {
+                        "$ref": "#/components/schemas/nomeUsuario"
+                    },
+                    "email": {
+                        "$ref": "#/components/schemas/emailBeltrano"
+                    },
+                    "password": {
+                        "$ref": "#/components/schemas/password"
+                    },
+                    "administrador": {
+                        "$ref": "#/components/schemas/administrador"
+                    },
+                    "_id": {
+                        "$ref": "#/components/schemas/_idUsuario"
+                    }
+                }
+            },
+            "getProdutos": {
+                "type": "object",
+                "properties": {
+                    "quantidade": {
+                        "type": "number",
+                        "example": 2
+                    },
+                    "produtos": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/arrayProduto"
+                        },
+                        "example": [
+                            {
+                                "nome": "Logitech MX Vertical",
+                                "preco": 470,
+                                "descricao": "Mouse",
+                                "quantidade": 381,
+                                "_id": "BeeJh5lz3k6kSIzA"
+                            },
+                            {
+                                "nome": "Samsung 60 polegadas",
+                                "preco": 5240,
+                                "descricao": "TV",
+                                "quantidade": 49977,
+                                "_id": "K6leHdftCeOJj8BJ"
+                            }
+                        ]
+                    }
+                }
+            },
+            "getProdutosId": {
+                "type": "object",
+                "properties": {
+                    "nome": {
+                        "$ref": "#/components/schemas/nomeProduto1"
+                    },
+                    "preco": {
+                        "$ref": "#/components/schemas/precoProduto1"
+                    },
+                    "descricao": {
+                        "$ref": "#/components/schemas/descricaoProduto1"
+                    },
+                    "quantidade": {
+                        "$ref": "#/components/schemas/quantidadeProduto1"
+                    },
+                    "_id": {
+                        "$ref": "#/components/schemas/_idProduto1"
+                    }
+                }
+            },
+            "getCarrinhos": {
+                "type": "object",
+                "properties": {
+                    "quantidade": {
+                        "type": "number",
+                        "example": 1
+                    },
+                    "carrinhos": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "produtos": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "idProduto": {
+                                                "type": "string"
+                                            },
+                                            "quantidade": {
+                                                "type": "integer"
+                                            },
+                                            "precoUnitario": {
+                                                "type": "integer"
+                                            }
+                                        },
+                                        "example": [
+                                            {
+                                                "idProduto": "BeeJh5lz3k6kSIzA",
+                                                "quantidade": 1,
+                                                "precoUnitario": 470
+                                            },
+                                            {
+                                                "idProduto": "K6leHdftCeOJj8BJ",
+                                                "quantidade": 2,
+                                                "precoUnitario": 5240
+                                            }
+                                        ]
+                                    }
+                                },
+                                "precoTotal": {
+                                    "type": "integer",
+                                    "example": 10950
+                                },
+                                "quantidadeTotal": {
+                                    "type": "integer",
+                                    "example": 3
+                                },
+                                "idUsuario": {
+                                    "type": "string",
+                                    "example": "0uxuPY0cbmQhpEz1"
+                                },
+                                "_id": {
+                                    "type": "string",
+                                    "example": "aFOUqntef4iaOwWfg"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "getCarrinhosId": {
+                "type": "object",
+                "properties": {
+                    "produtos": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "idProduto": {
+                                    "type": "string"
+                                },
+                                "quantidade": {
+                                    "type": "integer"
+                                },
+                                "precoUnitario": {
+                                    "type": "integer"
+                                }
+                            },
+                            "example": [
+                                {
+                                    "idProduto": "BeeJh5lz3k6kSIzA",
+                                    "quantidade": 2,
+                                    "precoUnitario": 470
+                                },
+                                {
+                                    "idProduto": "K6leHdftCeOJj8BJ",
+                                    "quantidade": 1,
+                                    "precoUnitario": 5240
+                                }
+                            ]
+                        }
+                    },
+                    "precoTotal": {
+                        "type": "integer",
+                        "example": 6180
+                    },
+                    "quantidadeTotal": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "idUsuario": {
+                        "type": "string",
+                        "example": "0uxuPY0cbmQhpEz1"
+                    },
+                    "_id": {
+                        "type": "string",
+                        "example": "qbMqntef4iTOwWfg"
+                    }
+                }
+            },
+            "cadastroComSucesso": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Cadastro realizado com sucesso"
+                    },
+                    "_id": {
+                        "type": "string",
+                        "example": "jogfODIlXsqxNFS2"
+                    }
+                }
+            },
+            "loginComSucesso": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Login realizado com sucesso"
+                    },
+                    "authorization": {
+                        "type": "string",
+                        "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZ1bGFub0BxYS5jb20iLCJwYXNzd29yZCI6InRlc3RlIiwiaWF0IjoxNTg5NzU4NzQ2LCJleHAiOjE1ODk3Njg3NDZ9.B6TASHV8k9xBerz4NSeFBlAZGSDhZlqESt767M0567I"
+                    }
+                }
+            },
+            "alteradoComSucesso": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Registro alterado com sucesso"
+                    }
+                }
+            },
+            "errorEmailJaUtilizado": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Este email já está sendo usado"
+                    }
+                }
+            },
+            "errorEmailSenhaInvalidos": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Email e/ou senha inválidos"
+                    }
+                }
+            },
+            "naoPermitidoExcluirUsuarioComCarrinho": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Não é permitido excluir usuário com carrinho cadastrado"
+                    },
+                    "idCarrinho": {
+                        "type": "string",
+                        "example": "qbMqntef4iTOwWfg"
+                    }
+                }
+            },
+            "naoPermitidoExcluirProdutoDeCarrinho": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Não é permitido excluir produto que faz parte de carrinho"
+                    },
+                    "idCarrinho": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "qbMqntef4iTOwWfg, yILJY1eaAUC6hyRc"
+                        }
+                    }
+                }
+            },
+            "existeProdutoComEsseNome": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Já existe produto com esse nome"
+                    }
+                }
+            },
+            "tokenAusenteInvalidoExpirado": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Token de acesso ausente, inválido, expirado ou usuário do token não existe mais"
+                    }
+                }
+            },
+            "rotaParaAdministradores": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Rota exclusiva para administradores"
+                    }
+                }
+            }
+        }
+    }
+}
