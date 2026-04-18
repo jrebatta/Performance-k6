@@ -10,8 +10,11 @@ const PROJECT_ROOT = path.join(__dirname, '..');
 
 function findLatestTestFile() {
   const jsonDir = path.join(PROJECT_ROOT, 'results', 'json');
+  console.log(`Buscando en: ${jsonDir}`);
+
   if (!fs.existsSync(jsonDir)) {
-    console.error('No se encuentra el directorio results/json');
+    fs.mkdirSync(jsonDir, { recursive: true });
+    console.error('Directorio results/json no existía — creado. No hay archivos aún.');
     return null;
   }
 

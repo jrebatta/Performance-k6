@@ -39,6 +39,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Create results directories
+        run: mkdir -p results/html results/json results/pdf
+
       - name: Run k6 load test
         continue-on-error: true
         run: |

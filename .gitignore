@@ -1,4 +1,9 @@
 node_modules/
+
 results/html/*
 results/json/*
 results/pdf/*
+
+!results/html/.gitkeep
+!results/json/.gitkeep
+!results/pdf/.gitkeep
