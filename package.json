@@ -1,0 +1,25 @@
+{
+  "name": "k6-performance",
+  "version": "1.0.0",
+  "description": "Pruebas de performance parametrizables para la API ServeRest usando K6",
+  "type": "module",
+  "scripts": {
+    "generate-pdf": "node scripts/generate-pdf.js",
+
+    "test:load:post":    "k6 run --env ENDPOINT=post-usuarios tests/load-test.js ; npm run generate-pdf",
+    "test:load:get":     "k6 run --env ENDPOINT=get-usuarios  tests/load-test.js ; npm run generate-pdf",
+    "test:load:put":     "k6 run --env ENDPOINT=put-usuarios  tests/load-test.js ; npm run generate-pdf",
+
+    "test:stress:post":  "k6 run --env ENDPOINT=post-usuarios tests/stress-test.js ; npm run generate-pdf",
+    "test:stress:get":   "k6 run --env ENDPOINT=get-usuarios  tests/stress-test.js ; npm run generate-pdf",
+    "test:stress:put":   "k6 run --env ENDPOINT=put-usuarios  tests/stress-test.js ; npm run generate-pdf",
+
+    "clean:results":     "del /q results\\html\\*.* 2>nul & del /q results\\json\\*.* 2>nul & del /q results\\pdf\\*.* 2>nul"
+  },
+  "keywords": ["k6", "performance", "testing", "serverest", "load-testing", "stress-testing"],
+  "private": true,
+  "devDependencies": {
+    "@types/k6": "^1.0.2",
+    "puppeteer": "^24.28.0"
+  }
+}

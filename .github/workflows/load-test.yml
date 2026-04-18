@@ -1,0 +1,116 @@
+name: Load Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      ENDPOINT:
+        description: 'Endpoint a probar'
+        required: true
+        default: 'put-usuarios'
+        type: choice
+        options:
+          - post-usuarios
+          - get-usuarios
+          - put-usuarios
+      VUS:
+        description: 'Usuarios virtuales'
+        required: true
+        default: '2'
+      DURATION:
+        description: 'Duración (segundos)'
+        required: true
+        default: '10'
+      DELAY:
+        description: 'Delay entre peticiones (ms)'
+        required: true
+        default: '2000'
+
+jobs:
+  load-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run k6 load test
+        continue-on-error: true
+        run: |
+          k6 run \
+            --env ENDPOINT=${{ inputs.ENDPOINT }} \
+            --env VUS=${{ inputs.VUS }} \
+            --env DURATION=${{ inputs.DURATION }} \
+            --env DELAY=${{ inputs.DELAY }} \
+            tests/load-test.js
+
+      - name: Generate PDF report
+        run: npm run generate-pdf
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report
+          path: results/html/*.html
+
+      - name: Upload JSON report
+        uses: actions/upload-artifact@v4
+        with:
+          name: json-report
+          path: results/json/*.json
+          exclude: results/json/*_pdf.json
+
+      - name: Upload PDF report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf-report
+          path: results/pdf/*.pdf
+
+      - name: Job Summary
+        if: always()
+        run: |
+          JSON=$(ls results/json/*.json 2>/dev/null | grep -v "_pdf" | sort | tail -1)
+
+          if [ -z "$JSON" ]; then
+            echo "## ⚠️ No se generaron resultados" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+
+          TOTAL=$(jq '.metrics.http_reqs.values.count // 0' "$JSON")
+          AUTH=$(jq '.metrics["http_reqs{name:auth_setup}"].values.count // 1' "$JSON")
+          FUNCTIONAL=$((TOTAL - AUTH))
+          AVG=$(jq '.metrics.http_req_duration.values.avg // 0 | . * 100 | round / 100' "$JSON")
+          P95=$(jq '.metrics.http_req_duration.values["p(95)"] // 0 | . * 100 | round / 100' "$JSON")
+          ERRORS=$(jq '.metrics.http_req_failed.values.passes // 0' "$JSON")
+          ERROR_PCT=$(jq '(.metrics.http_req_failed.values.rate // 0) * 100 | . * 100 | round / 100' "$JSON")
+          DURATION=$(jq '(.state.testRunDurationMs // 0) / 1000 | . * 10 | round / 10' "$JSON")
+          STATUS=$(jq 'if (.metrics.http_req_duration.values.avg > 2000) or (.metrics.http_req_failed.values.rate > 0.01) then "❌ NO CONFORME" else "✅ CONFORME" end' "$JSON" -r)
+
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## 🚀 Load Test — \`${{ inputs.ENDPOINT }}\`
+
+          ### Configuración ejecutada
+          | Parámetro | Valor |
+          |-----------|-------|
+          | Endpoint | \`${{ inputs.ENDPOINT }}\` |
+          | Usuarios virtuales | ${{ inputs.VUS }} |
+          | Duración | ${{ inputs.DURATION }}s |
+          | Delay | ${{ inputs.DELAY }}ms |
+
+          ### Métricas
+          | Métrica | Valor |
+          |---------|-------|
+          | Requests funcionales | $FUNCTIONAL |
+          | Tiempo promedio | ${AVG}ms |
+          | Tiempo P95 | ${P95}ms |
+          | Requests fallidos | $ERRORS |
+          | Tasa de errores | ${ERROR_PCT}% |
+          | Duración total | ${DURATION}s |
+
+          ### Resultado: $STATUS
+          EOF
