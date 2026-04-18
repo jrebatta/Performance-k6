@@ -55,24 +55,15 @@ jobs:
       - name: Generate PDF report
         run: npm run generate-pdf
 
-      - name: Upload HTML report
+      - name: Upload reports
         uses: actions/upload-artifact@v4
         with:
-          name: html-report
-          path: results/html/*.html
-
-      - name: Upload JSON report
-        uses: actions/upload-artifact@v4
-        with:
-          name: json-report
-          path: results/json/*.json
+          name: load-test-reports_${{ inputs.ENDPOINT }}
+          path: |
+            results/html/*.html
+            results/json/*.json
+            results/pdf/*.pdf
           exclude: results/json/*_pdf.json
-
-      - name: Upload PDF report
-        uses: actions/upload-artifact@v4
-        with:
-          name: pdf-report
-          path: results/pdf/*.pdf
 
       - name: Job Summary
         if: always()
